@@ -23,29 +23,30 @@ int main() {
   // Create Screen Buffer
   _wsystem(L"mode con lines=75 cols=200");
   SetConsoleTitleW(L"ConsoleFPS");
+
   wchar_t* screen = new wchar_t[nScreenWidth * nScreenHeight];
   HANDLE hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
   SetConsoleActiveScreenBuffer(hConsole);
   DWORD dwBytesWritten = 0;
 
   // Create Map of world space # = wall block, . = space
-  wstring map;
-  map += L"################";
-  map += L"#..............#";
-  map += L"#..............#";
-  map += L"#..............#";
-  map += L"#########......#";
-  map += L"#..............#";
-  map += L"#..######......#";
-  map += L"#.#............#";
-  map += L"##.............#";
-  map += L"#......####..###";
-  map += L"#......#.......#";
-  map += L"#......#.......#";
-  map += L"#..............#";
-  map += L"#......#########";
-  map += L"#..............#";
-  map += L"################";
+  const wstring map = \
+    L"################"\
+    L"#..............#"\
+    L"#..............#"\
+    L"#..............#"\
+    L"#########......#"\
+    L"#..............#"\
+    L"#..######......#"\
+    L"#.#............#"\
+    L"##.............#"\
+    L"#......####..###"\
+    L"#......#.......#"\
+    L"#......#.......#"\
+    L"#..............#"\
+    L"#......#########"\
+    L"#..............#"\
+    L"################";
 
   chrono::system_clock::time_point tp1;
   chrono::system_clock::time_point tp2;
@@ -60,28 +61,28 @@ int main() {
     float_t fElapsedTime = elapsedTime.count();
 
     //Handle CCW Rotation
-    if(GetAsyncKeyState((uint16_t) 'A') & 0x8000)
+    if(GetAsyncKeyState((uint16_t)'A') & 0x8000)
       fPlayerA -= (fSpeed * 0.75f) * fElapsedTime;
 
     //Handle CW Rotation
-    if(GetAsyncKeyState((uint16_t) 'D') & 0x8000)
+    if(GetAsyncKeyState((uint16_t)'D') & 0x8000)
       fPlayerA += (fSpeed * 0.75f) * fElapsedTime;
 
     //Handle Forwards movement & collision
-    if(GetAsyncKeyState((uint16_t) 'W') & 0x8000) {
+    if(GetAsyncKeyState((uint16_t)'W') & 0x8000) {
       fPlayerX += sinf(fPlayerA) * fSpeed * fElapsedTime;;
       fPlayerY += cosf(fPlayerA) * fSpeed * fElapsedTime;;
-      if(map.c_str()[(int) fPlayerX * nMapWidth + (int) fPlayerY] == '#') {
+      if(map.c_str()[(int)fPlayerX * nMapWidth + (int)fPlayerY] == '#') {
         fPlayerX -= sinf(fPlayerA) * fSpeed * fElapsedTime;;
         fPlayerY -= cosf(fPlayerA) * fSpeed * fElapsedTime;;
       }
     }
 
     //Handle backwards movement & collision
-    if(GetAsyncKeyState((uint16_t) 'S') & 0x8000) {
+    if(GetAsyncKeyState((uint16_t)'S') & 0x8000) {
       fPlayerX -= sinf(fPlayerA) * fSpeed * fElapsedTime;;
       fPlayerY -= cosf(fPlayerA) * fSpeed * fElapsedTime;;
-      if(map.c_str()[(int) fPlayerX * nMapWidth + (int) fPlayerY] == '#') {
+      if(map.c_str()[(int)fPlayerX * nMapWidth + (int)fPlayerY] == '#') {
         fPlayerX += sinf(fPlayerA) * fSpeed * fElapsedTime;;
         fPlayerY += cosf(fPlayerA) * fSpeed * fElapsedTime;;
       }
@@ -89,7 +90,7 @@ int main() {
 
     for(uint16_t x = 0; x < nScreenWidth; x++) {
       //For each column, calculate the projected ray angle into world space
-      float_t fRayAngle = (fPlayerA - fFOV / 2.0f) + ((float_t) x / (float_t) nScreenWidth) * fFOV;
+      float_t fRayAngle = (fPlayerA - fFOV / 2.0f) + ((float_t)x / (float_t)nScreenWidth) * fFOV;
 
       // Find distance to wall
       constexpr float_t fStepSize = 0.05f;  //Increment size for ray casting, decrease to increase resolution
@@ -105,8 +106,8 @@ int main() {
       //intersection with a block
       while(!bHitWall && fDistanceToWall < fDepth) {
         fDistanceToWall += fStepSize;
-        int16_t nTestX = (int16_t) (fPlayerX + fEyeX * fDistanceToWall);
-        int16_t nTestY = (int16_t) (fPlayerY + fEyeY * fDistanceToWall);
+        int16_t nTestX = (int16_t)(fPlayerX + fEyeX * fDistanceToWall);
+        int16_t nTestY = (int16_t)(fPlayerY + fEyeY * fDistanceToWall);
 
         //Test if ray is out of bounds
         if(nTestX < 0 || nTestX >= nMapWidth || nTestY < 0 || nTestY >= nMapHeight) {
@@ -127,18 +128,18 @@ int main() {
 
             //Test each corner of hit tile, storing the distance from
             //the player, and the calculated dot product of the two rays
-            for(uint8_t tx = 0; tx < 2; tx++) {
-              for(uint8_t ty = 0; ty < 2; ty++) {
+            for(uint8_t tx = 0; tx < 2; ++tx) {
+              for(uint8_t ty = 0; ty < 2; ++ty) {
                 //Angle of corner to eye
-                float_t vy = (float_t) nTestY + ty - fPlayerY;
-                float_t vx = (float_t) nTestX + tx - fPlayerX;
+                float_t vy = (float_t)nTestY + ty - fPlayerY;
+                float_t vx = (float_t)nTestX + tx - fPlayerX;
                 float_t d = sqrt(vx * vx + vy * vy);
                 float_t dot = (fEyeX * vx / d) + (fEyeY * vy / d);
                 p.push_back(make_pair(d, dot));
               }
             }
             //Sort Pairs from closest to farthest
-            sort(p.begin(), p.end(), [] (const pair<float_t, float_t>& left, const pair<float_t, float_t>& right) {return left.first < right.first; });
+            sort(p.begin(), p.end(), [](const pair<float_t, float_t>& left, const pair<float_t, float_t>& right) {return left.first < right.first; });
 
             //First two/three are closest (we will never see all four)
             constexpr float_t fBound = 0.01;
@@ -150,7 +151,7 @@ int main() {
       }
 
       //Calculate distance to ceiling and floor
-      int16_t nCeiling = (float_t) (nScreenHeight / 2.0) - nScreenHeight / ((float_t) fDistanceToWall);
+      int16_t nCeiling = (float_t)(nScreenHeight / 2.0) - nScreenHeight / ((float_t)fDistanceToWall);
       int16_t nFloor = nScreenHeight - nCeiling;
 
       //Shader walls based on distance
@@ -176,7 +177,7 @@ int main() {
         }
       }
 
-      for(uint16_t y = 0; y < nScreenHeight; y++) {
+      for(uint16_t y = 0; y < nScreenHeight; ++y) {
         //Each Row
         if(y <= nCeiling) {
           screen[y * nScreenWidth + x] = ' ';
@@ -186,7 +187,7 @@ int main() {
         }
         else { //Floor 
           //Shade floor based on distance
-          const float_t b = 1.0f - (((float_t) y - nScreenHeight / 2.0f) / ((float_t) nScreenHeight / 2.0f));
+          const float_t b = 1.F - (((float_t)y - nScreenHeight / 2.F) / ((float_t)nScreenHeight / 2.F));
           if(b < 0.25)		nShade = '#';
           else if(b < 0.5)	nShade = 'x';
           else if(b < 0.75)	nShade = '.';
@@ -198,7 +199,7 @@ int main() {
     }
 
     //Display Stats
-    swprintf_s(screen, 80, L"X=%3.2f, Y=%3.2f, A=%3.2f FPS=%3.2f ", fPlayerX, fPlayerY, fPlayerA, 1.0f / fElapsedTime);
+    swprintf_s(screen, 80, L"X=%3.2f, Y=%3.2f, A=%3.2f FPS=%3.2f ", fPlayerX, fPlayerY, fPlayerA, 1.F / fElapsedTime);
 
     //Display Map
     for(uint8_t nx = 0; nx < nMapWidth; nx++) {
@@ -206,11 +207,11 @@ int main() {
         screen[(ny + 1) * nScreenWidth + nx] = map[static_cast<uint64_t>(ny) * nMapWidth + nx];
       }
     }
-    screen[((uint64_t) fPlayerX + 1) * nScreenWidth + (uint64_t) fPlayerY] = 'P';
+    screen[((uint64_t)fPlayerX + 1) * nScreenWidth + (uint64_t)fPlayerY] = 'P';
 
     //Display Frame
     screen[nScreenWidth * nScreenHeight - 1] = '\0';
-    WriteConsoleOutputCharacterW(hConsole, screen, nScreenWidth * nScreenHeight, {0,0}, &dwBytesWritten);
+    WriteConsoleOutputCharacterW(hConsole, screen, nScreenWidth * nScreenHeight, {0, 0}, &dwBytesWritten);
   }
 
   return 0;
