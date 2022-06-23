@@ -12,12 +12,12 @@ constexpr uint16_t nScreenHeight = 75;        //Console Screen Size Y (rows)
 constexpr uint16_t nMapWidth = 16;            //World Dimensions
 constexpr uint16_t nMapHeight = 16;
 
-constexpr float_t fFOV = 3.141592741f / 4.0f; //Field of View
-constexpr float_t fDepth = 32.0f;             //Maximum rendering distance
-constexpr float_t fSpeed = 2.5f;              //Walking Speed
-float_t fPlayerX = 14.7f;                     //Player Start Position
-float_t fPlayerY = 5.09f;
-float_t fPlayerA = 0.0f;                      //Player Start Rotation
+constexpr float_t fFOV = 3.141592741F / 4.F; //Field of View
+constexpr float_t fDepth = 32.0F;             //Maximum rendering distance
+constexpr float_t fSpeed = 2.5F;              //Walking Speed
+float_t fPlayerX = 14.7F;                     //Player Start Position
+float_t fPlayerY = 5.09F;
+float_t fPlayerA = 0.F;                      //Player Start Rotation
 
 int main() {
   // Create Screen Buffer
